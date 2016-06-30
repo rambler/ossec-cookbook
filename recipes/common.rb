@@ -38,49 +38,49 @@ ruby_block 'ossec install_type' do # ~FC014
   end
 end
 
-# Gyoku renders the XML.
-chef_gem 'gyoku' do
-  compile_time false if respond_to?(:compile_time)
-end
-
-file "#{node['ossec']['dir']}/etc/ossec.conf" do
-  owner 'root'
-  group 'ossec'
-  mode '0440'
-  manage_symlink_source true
-  notifies :restart, 'service[ossec]'
-
-  content lazy {
-    # Merge the "typed" attributes over the "all" attributes.
-    all_conf = node['ossec']['conf']['all'].to_hash
-    type_conf = node['ossec']['conf'][node['ossec']['install_type']].to_hash
-    conf = Chef::Mixin::DeepMerge.deep_merge(type_conf, all_conf)
-    Chef::OSSEC::Helpers.ossec_to_xml('ossec_config' => conf)
-  }
-end
-
-file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
-  owner 'root'
-  group 'ossec'
-  mode '0440'
-  notifies :restart, 'service[ossec]'
-
-  # Even if agent.cont is not appropriate for this kind of
-  # installation, we need to create an empty file instead of deleting
-  # for two reasons. Firstly, install_type is set at converge time
-  # while action can't be lazy. Secondly, a subsequent package update
-  # would just replace the file.
-  action :create
-
-  content lazy {
-    if node['ossec']['install_type'] == 'server'
-      conf = node['ossec']['agent_conf'].to_a
-      Chef::OSSEC::Helpers.ossec_to_xml('agent_config' => conf)
-    else
-      ''
-    end
-  }
-end
+# # Gyoku renders the XML.
+# chef_gem 'gyoku' do
+#   compile_time false if respond_to?(:compile_time)
+# end
+#
+# file "#{node['ossec']['dir']}/etc/ossec.conf" do
+#   owner 'root'
+#   group 'ossec'
+#   mode '0440'
+#   manage_symlink_source true
+#   notifies :restart, 'service[ossec]'
+#
+#   content lazy {
+#     # Merge the "typed" attributes over the "all" attributes.
+#     all_conf = node['ossec']['conf']['all'].to_hash
+#     type_conf = node['ossec']['conf'][node['ossec']['install_type']].to_hash
+#     conf = Chef::Mixin::DeepMerge.deep_merge(type_conf, all_conf)
+#     Chef::OSSEC::Helpers.ossec_to_xml('ossec_config' => conf)
+#   }
+# end
+#
+# file "#{node['ossec']['dir']}/etc/shared/agent.conf" do
+#   owner 'root'
+#   group 'ossec'
+#   mode '0440'
+#   notifies :restart, 'service[ossec]'
+#
+#   # Even if agent.cont is not appropriate for this kind of
+#   # installation, we need to create an empty file instead of deleting
+#   # for two reasons. Firstly, install_type is set at converge time
+#   # while action can't be lazy. Secondly, a subsequent package update
+#   # would just replace the file.
+#   action :create
+#
+#   content lazy {
+#     if node['ossec']['install_type'] == 'server'
+#       conf = node['ossec']['agent_conf'].to_a
+#       Chef::OSSEC::Helpers.ossec_to_xml('agent_config' => conf)
+#     else
+#       ''
+#     end
+#   }
+# end
 
 # Both the RPM and DEB packages enable and start the service
 # immediately after installation, which isn't helpful. An empty
